@@ -96,6 +96,7 @@ public class MapGenerator : MonoBehaviour
             
             GameObject go = Instantiate(baseBottomTile, startPos + offset * baseCount, Quaternion.identity);
             go.transform.SetParent(basesBottomParentTransform);
+            go.GetComponent<Base>().InitialSetup(i);
             baseCount++;
         }
     }

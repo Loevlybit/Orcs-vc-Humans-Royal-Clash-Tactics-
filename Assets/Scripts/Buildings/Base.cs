@@ -33,20 +33,22 @@ public class Base : MonoBehaviour
 
 
     private bool hasUnitsOnBase;
+    private bool _inNeedOfReinforcments = false;
 
     public Owner Owner { get { return _owner; } }
     public int UnitsOnBase { get { return _unitsOnBase; } }
     public int DamagePerUnit{ get { return _damagePerUnit; } }
     public int HealthPerUnit{ get { return _healthPerUnit; } }
     public int ChoosenUnitsForAttack { set { _choosenUnitsForAttack = value; } }
+    public bool InNeedOfReinforcments { get { return _inNeedOfReinforcments; } set { _inNeedOfReinforcments = value; } }
 
     
     private void Start() {
         if (BaseSelection.BaseSelected == null) BaseSelection.BaseSelected = this.gameObject;
         roundSystem = GameObject.Find("RoundSystem").GetComponent<RoundSystem>();
         roundSystem.OnNextRound += OnNextRound;
-        _owner = Owner.Player; // temporaly
-        if (transform.position.x == 2) _owner = Owner.AI;         
+        //_owner = Owner.Player; // temporaly
+        //if (transform.position.x == 2) _owner = Owner.AI;    
         
 
         _damagePerUnit = _selectedUnitScript.DamagePerUnit;
@@ -60,21 +62,10 @@ public class Base : MonoBehaviour
 
     
     
-    public void ChangeOwner()
+    public void ChangeOwner(Owner bUnitOwner)
     {
-        if (_owner == Owner.Player)
-        {
-            _owner = Owner.AI;
-            
-            //print("new Owner is AI");
-        } 
-
-        else
-        {
-            _owner = Owner.Player;
-            //print("new Owner is Player");
-        }
-
+        _owner = bUnitOwner;
+        
         if (OnOwnerChange != null) OnOwnerChange(this, EventArgs.Empty);
     }
 
@@ -86,6 +77,8 @@ public class Base : MonoBehaviour
 
     private void ProduceUnits(BattleUnit unit)
     {
+        if (_owner == Owner.Neutral) return;
+
         var numberOfUnits = unit.UnitsProducedPerRound;
         ChangeNumberOfUnits(numberOfUnits);
     }
@@ -126,7 +119,7 @@ public class Base : MonoBehaviour
         bUnit.IncreaseNumberOfUnits(actingBase._choosenUnitsForAttack);
 
         print("number of units in BattleUnit after increasing = " + bUnit.TotalHealth / bUnit.HealthPerUnit);
-        actingBase._unitsOnBase -= actingBase._choosenUnitsForAttack;
+        actingBase.ChangeNumberOfUnits(-actingBase._choosenUnitsForAttack);
         actingBase._choosenUnitsForAttack = 0;
     }
 
@@ -201,5 +194,27 @@ public class Base : MonoBehaviour
         CreateBattleUnit(_selectedUnit, actingBase, targetBase);
     }
 
-    
+    public void InitialSetup(int baseSetupNumber)
+    {
+        if (baseSetupNumber == 0)
+        {
+            _owner = Owner.Player;
+            _unitsOnBase = 10;
+        }
+
+        else if (baseSetupNumber == 35)
+        {
+            _owner = Owner.AI;
+            _unitsOnBase = 10;
+        }
+        
+        else
+        {
+            _owner = Owner.Neutral;
+            _unitsOnBase = 5;           
+        }
+
+
+        
+    }
 }

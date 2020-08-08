@@ -62,9 +62,14 @@ public class AIController : MonoBehaviour
                 {
                     controlledBase.ChoosenUnitsForAttack = GetNumberOfChoosenUnitsForAttack(connectedBase, controlledBase);
                     controlledBase.Attack(controlledBase, connectedBase);
+                    controlledBase.InNeedOfReinforcments = false;
                     return;
                 } 
+
+                controlledBase.InNeedOfReinforcments = true;
             }
+
+            controlledBase.InNeedOfReinforcments = false;
         }
     }
 
@@ -87,7 +92,7 @@ public class AIController : MonoBehaviour
 
     private bool CanWin(Base connectedBase, Base controlledBase)
     {
-        if (controlledBase.UnitsOnBase - connectedBase.UnitsOnBase > 4)
+        if (controlledBase.UnitsOnBase - connectedBase.UnitsOnBase > 2)
         {            
             return true;
         }
@@ -102,20 +107,31 @@ public class AIController : MonoBehaviour
 
     private void Move(List<Base> connectedBases, Base controlledBase)
     {
-        controlledBase.ChoosenUnitsForAttack = controlledBase.UnitsOnBase;
+
         var connectedAIBases = new List<Base>();
         foreach (var connectedBase in connectedBases)
         {
             if (connectedBase.Owner == Owner.AI) 
                 connectedAIBases.Add(connectedBase);
         }
-        
-        if (Random.value > 0.5f)
+    
+        if (connectedAIBases.Count == 0) return;
+
+        controlledBase.ChoosenUnitsForAttack = controlledBase.UnitsOnBase;
+
+        foreach (var connectedBase in connectedAIBases)
         {
-            var targetBase = connectedAIBases[Random.Range(0, connectedAIBases.Count)];
-            controlledBase.Move(controlledBase, targetBase);
-        }
+            if (connectedBase.InNeedOfReinforcments == true)
+            {
+                if (Random.value > 0.5f || controlledBase.InNeedOfReinforcments == false)
+                {
+                    controlledBase.Move(controlledBase, connectedBase);
+                    return;
+                }
+            }
+        } 
     }
+
 
     //the logic behind the code that we check if there are any bases in 2f on x or y from our base. Also we know that max connection equals 4. 
     private List<Base> FindConnectedBases(Base _base)

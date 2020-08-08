@@ -48,7 +48,7 @@ public class BattleHandler : MonoBehaviour
 
         if (targetBase.UnitsOnBase == 0)
         {
-            targetBase.ChangeOwner();
+            targetBase.ChangeOwner(battleUnit.Owner);
             //print("Owner Change");
             print("Before recieving reinforcment");
             targetBase.RecieveBattleUnit(Mathf.FloorToInt(battleUnit.TotalHealth / battleUnit.HealthPerUnit));

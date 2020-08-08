@@ -16,6 +16,7 @@ public class BaseUI : MonoBehaviour
         roundSystem = GameObject.Find("RoundSystem").GetComponent<RoundSystem>();
         roundSystem.OnNextRound += OnNextRound;
         myBase.OnNumberOfUnitsChange += OnNumberOfUnitsChange;
+        Invoke("UpdateNumberOfUnitsUI", 0.1f);
     }
 
     private void OnNextRound(object sender, System.EventArgs e)

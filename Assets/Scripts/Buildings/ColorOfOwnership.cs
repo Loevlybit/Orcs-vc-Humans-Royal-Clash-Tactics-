@@ -10,6 +10,7 @@ public class ColorOfOwnership : MonoBehaviour
 
     private Color playerColor = Color.black;
     private Color AIColor = Color.white; 
+    private Color neutralColor = Color.yellow;
     
     
     // Start is called before the first frame update
@@ -30,14 +31,17 @@ public class ColorOfOwnership : MonoBehaviour
     {
         //print("OnOwnerChange");
         if (_myBase.Owner == Owner.Player)
-        {
-            //print("Current Owner is player");
-            _spriteRenderer.color = Color.black;
+        {    
+            _spriteRenderer.color = playerColor;
         }
         else if (_myBase.Owner == Owner.AI)
         {
-            //print("Current Owner is AI");
             _spriteRenderer.color = AIColor;
+        }
+
+        else if (_myBase.Owner == Owner.Neutral)
+        {
+            _spriteRenderer.color = neutralColor;
         }
     }
 }
