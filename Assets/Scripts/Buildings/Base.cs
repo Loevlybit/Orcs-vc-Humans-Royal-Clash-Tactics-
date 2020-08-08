@@ -26,6 +26,7 @@ public class Base : MonoBehaviour
 
     private RoundSystem roundSystem;
     [SerializeField] private GameObject _basePanel;
+    [SerializeField] private GameObject _chooseSlider;
 
     public event EventHandler OnBaseSelected;
     public event EventHandler OnNumberOfUnitsChange;
@@ -66,6 +67,11 @@ public class Base : MonoBehaviour
     {
         _owner = bUnitOwner;
         
+        if (_owner == Owner.Player)
+            _chooseSlider.SetActive(true);
+        else
+            _chooseSlider.SetActive(false);
+
         if (OnOwnerChange != null) OnOwnerChange(this, EventArgs.Empty);
     }
 
@@ -200,6 +206,7 @@ public class Base : MonoBehaviour
         {
             _owner = Owner.Player;
             _unitsOnBase = 10;
+            _chooseSlider.SetActive(true);
         }
 
         else if (baseSetupNumber == 35)
@@ -211,7 +218,8 @@ public class Base : MonoBehaviour
         else
         {
             _owner = Owner.Neutral;
-            _unitsOnBase = 5;           
+            _unitsOnBase = 5;
+                       
         }
 
 

@@ -67,6 +67,7 @@ public class AIController : MonoBehaviour
                 } 
 
                 controlledBase.InNeedOfReinforcments = true;
+                continue;
             }
 
             controlledBase.InNeedOfReinforcments = false;
@@ -128,8 +129,11 @@ public class AIController : MonoBehaviour
                     controlledBase.Move(controlledBase, connectedBase);
                     return;
                 }
-            }
-        } 
+            }           
+        }
+
+         var targetBase = connectedAIBases[Random.Range(0, connectedAIBases.Count)];
+         controlledBase.Move(controlledBase, targetBase);
     }
 
 
