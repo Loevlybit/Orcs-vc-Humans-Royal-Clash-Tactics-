@@ -46,7 +46,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _healthPerUnit: 30
   _damagePerUnit: 10
-  _speed: 5
+  _speed: 1
   _spritePrefab: {fileID: 0}
   _unitProducedPerRound: 2
   _offset: {x: 0.5, y: 0.5, z: 0}

@@ -5,14 +5,14 @@ using UnityEngine;
 public class AIController : MonoBehaviour
 {
     private List<Base> _bases = new List<Base>();
-    private Dictionary<Vector2, Base> basesCoordinates = new Dictionary<Vector2, Base>();
+    public static Dictionary<Vector2, Base> basesCoordinates = new Dictionary<Vector2, Base>();
     private RoundSystem _roundSystem;
     private BattleHandler _battleHandler;
 
     private void Start() {
         Invoke("FindAllBasesOnMap", 0.1f); // to escape a race with map generator
         _roundSystem = GameObject.FindObjectOfType<RoundSystem>().GetComponent<RoundSystem>();
-        _roundSystem.OnNextRound += MakeDecisionsForEachBase;
+        _roundSystem.OnNextRound += StartMakeDecisionsForEachBase;
         _battleHandler = GameObject.FindObjectOfType<BattleHandler>().GetComponent<BattleHandler>();
     }
 
@@ -33,7 +33,12 @@ public class AIController : MonoBehaviour
         //print("Dictionary found = " + basesCoordinates.Count);
     }
 
-    private void MakeDecisionsForEachBase(object sender, System.EventArgs e)
+    private void StartMakeDecisionsForEachBase(object sender, System.EventArgs e)
+    {
+        Invoke("MakeDecisionsForEachBase", 0.1f);
+    }
+    
+    private void MakeDecisionsForEachBase()
     {
         
         print("Starting makeDecisions");
@@ -78,7 +83,7 @@ public class AIController : MonoBehaviour
     {
         if (controlledBase.UnitsOnBase - connectedBase.UnitsOnBase > 10)
         {
-            return controlledBase.UnitsOnBase + 10;
+            return connectedBase.UnitsOnBase + 10;
         }
         
         return controlledBase.UnitsOnBase;
@@ -152,5 +157,7 @@ public class AIController : MonoBehaviour
 
         return connectedBases;
     }
+
+
 
 }

@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class BaseUI : MonoBehaviour
 {
     private Base myBase;
     private TextMeshPro _tmPro;
     private RoundSystem roundSystem;
+    [SerializeField] private Slider _myChooseSlider;
     
 
     private void Start() {
@@ -31,6 +33,7 @@ public class BaseUI : MonoBehaviour
 
     private void UpdateNumberOfUnitsUI()
     {
+        if (_myChooseSlider != null) _myChooseSlider.maxValue = myBase.UnitsOnBase;
         _tmPro.text = myBase.UnitsOnBase.ToString();
     }
 

@@ -8,5 +8,15 @@ public static class BaseSelection
     private static GameObject _baseSelected;
     
 
-    public static GameObject BaseSelected {get { return _baseSelected;} set { _baseSelected = value; }}
+    public static GameObject BaseSelected 
+    {
+        get 
+        { 
+            return _baseSelected;
+        } 
+        set 
+        { 
+            _baseSelected = value; 
+        }
+    }
 }

@@ -35,6 +35,11 @@ public class Base : MonoBehaviour
 
     private bool hasUnitsOnBase;
     private bool _inNeedOfReinforcments = false;
+    private List<Base> _connectedBases;
+
+    // for auto movement
+    public Base autoMovementTargetBase = null;
+    public AutoDirection currentAutoDirection = AutoDirection.none; 
 
     public Owner Owner { get { return _owner; } }
     public int UnitsOnBase { get { return _unitsOnBase; } }
@@ -42,23 +47,25 @@ public class Base : MonoBehaviour
     public int HealthPerUnit{ get { return _healthPerUnit; } }
     public int ChoosenUnitsForAttack { set { _choosenUnitsForAttack = value; } }
     public bool InNeedOfReinforcments { get { return _inNeedOfReinforcments; } set { _inNeedOfReinforcments = value; } }
+    public List<Base> ConnectedBases { get { return _connectedBases; } }
 
     
     private void Start() {
         if (BaseSelection.BaseSelected == null) BaseSelection.BaseSelected = this.gameObject;
         roundSystem = GameObject.Find("RoundSystem").GetComponent<RoundSystem>();
-        roundSystem.OnNextRound += OnNextRound;
-        //_owner = Owner.Player; // temporaly
-        //if (transform.position.x == 2) _owner = Owner.AI;    
+        roundSystem.OnNextRound += OnNextRound;  
         
 
         _damagePerUnit = _selectedUnitScript.DamagePerUnit;
         _healthPerUnit = _selectedUnitScript.HealthPerUnit;
+
+        StartCoroutine(SetConnectedBases(this));
     }
 
-    private void Update() 
+    private IEnumerator SetConnectedBases(Base _base)
     {
-        
+        yield return new WaitForSeconds(0.2f);
+        _connectedBases = FindConnectedBases(_base);
     }
 
     
@@ -66,7 +73,7 @@ public class Base : MonoBehaviour
     public void ChangeOwner(Owner bUnitOwner)
     {
         _owner = bUnitOwner;
-        
+
         if (_owner == Owner.Player)
             _chooseSlider.SetActive(true);
         else
@@ -132,10 +139,17 @@ public class Base : MonoBehaviour
     private void OnNextRound(object sender, System.EventArgs e)
     {
         ProduceUnits(_selectedUnitScript);
+        
+        if ((currentAutoDirection != AutoDirection.none) && (autoMovementTargetBase != null))
+        {
+            _choosenUnitsForAttack = _unitsOnBase;
+            PlayerAction(this, autoMovementTargetBase);
+            print("Player auto acts");
+        }
     }
 
     
-    private void OnMouseDown() 
+    /* private void OnMouseDown() 
     {
         //deal with second click on the same base
         
@@ -164,6 +178,25 @@ public class Base : MonoBehaviour
                 previousSelection.OnBaseSelected(this, EventArgs.Empty);
             } 
         }
+    } */
+
+    private void OnMouseDown() 
+    {
+        //deal with second click on the same base
+        
+        var previousSelection = BaseSelection.BaseSelected.GetComponent<Base>();
+        
+        bool isConnected = CheckIfBasesAreConnected(previousSelection.gameObject.transform.position, transform.position);
+        
+        if (isConnected)
+        {
+            if (previousSelection._choosenUnitsForAttack > 0)
+            {
+                PlayerAction(previousSelection, this);
+                return;
+            } 
+        }
+
     }
 
     private bool CheckIfBasesAreConnected(Vector3 currentBasePosition, Vector3 newBasePosition)
@@ -224,5 +257,22 @@ public class Base : MonoBehaviour
 
 
         
+    }
+
+    private List<Base> FindConnectedBases(Base _base)
+    {
+        var connectedBases = new List<Base>();
+        var dict = AIController.basesCoordinates;
+
+        if (dict.ContainsKey(new Vector2(_base.transform.position.x, _base.transform.position.y + 2f)))
+            connectedBases.Add(dict[new Vector2(_base.transform.position.x, _base.transform.position.y + 2f)]);
+        if (dict.ContainsKey(new Vector2(_base.transform.position.x + 2f, _base.transform.position.y)))
+            connectedBases.Add(dict[new Vector2(_base.transform.position.x + 2f, _base.transform.position.y)]);
+        if (dict.ContainsKey(new Vector2(_base.transform.position.x, _base.transform.position.y - 2f)))
+            connectedBases.Add(dict[new Vector2(_base.transform.position.x, _base.transform.position.y - 2f)]);
+        if (dict.ContainsKey(new Vector2(_base.transform.position.x - 2f, _base.transform.position.y)))
+            connectedBases.Add(dict[new Vector2(_base.transform.position.x - 2f, _base.transform.position.y)]);        
+
+        return connectedBases;
     }
 }

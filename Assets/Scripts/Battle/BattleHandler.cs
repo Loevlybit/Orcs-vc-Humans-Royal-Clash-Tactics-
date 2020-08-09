@@ -15,7 +15,15 @@ public class BattleHandler : MonoBehaviour
         if (battlesDictionary.ContainsKey(targetBase))
         {            
             print("BattleDictionary contains key_ go to reinforcments");
-            battlesDictionary[targetBase].RecieveReinforcments(Mathf.FloorToInt(battleUnit.TotalHealth / battleUnit.HealthPerUnit));
+            if (battlesDictionary[targetBase].Owner != battleUnit.Owner)
+            {
+                targetBase.RecieveBattleUnit(Mathf.FloorToInt(battleUnit.TotalHealth / battleUnit.HealthPerUnit));
+            }
+            else
+            {
+                battlesDictionary[targetBase].RecieveReinforcments(Mathf.FloorToInt(battleUnit.TotalHealth / battleUnit.HealthPerUnit));
+            }
+            
             Destroy(battleUnit.gameObject);
             return;
         }
