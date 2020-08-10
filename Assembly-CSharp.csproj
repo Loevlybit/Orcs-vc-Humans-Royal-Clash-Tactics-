@@ -72,6 +72,7 @@
      <Compile Include="Assets\Scripts\UI\BaseChooseSlider.cs" />
      <Compile Include="Assets\Scripts\UI\BasePanel.cs" />
      <Compile Include="Assets\Scripts\UI\Test.cs" />
+     <Compile Include="Assets\Scripts\UI\UnitSelectionButton.cs" />
      <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark01.cs" />
      <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark01_UGUI.cs" />
      <Compile Include="Assets\TextMesh Pro\Examples &amp; Extras\Scripts\Benchmark02.cs" />

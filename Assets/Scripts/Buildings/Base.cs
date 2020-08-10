@@ -275,4 +275,10 @@ public class Base : MonoBehaviour
 
         return connectedBases;
     }
+
+    public void UpdateSelectedUnit(BattleUnit selectedUnit, GameObject selectedUnitPrefab)
+    {
+        _selectedUnit = selectedUnitPrefab;
+        _selectedUnitScript = selectedUnit;
+    }
 }
