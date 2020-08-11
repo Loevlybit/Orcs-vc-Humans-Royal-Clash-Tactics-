@@ -17,11 +17,11 @@ public class BattleHandler : MonoBehaviour
             print("BattleDictionary contains key_ go to reinforcments");
             if (battlesDictionary[targetBase].Owner != battleUnit.Owner)
             {
-                targetBase.RecieveBattleUnit(Mathf.FloorToInt(battleUnit.TotalHealth / battleUnit.HealthPerUnit));
+                targetBase.RecieveBattleUnit(Mathf.FloorToInt(battleUnit.TotalHealth / battleUnit.HealthPerUnit), battleUnit);
             }
             else
             {
-                battlesDictionary[targetBase].RecieveReinforcments(Mathf.FloorToInt(battleUnit.TotalHealth / battleUnit.HealthPerUnit));
+                battlesDictionary[targetBase].RecieveReinforcments(Mathf.FloorToInt(battleUnit.TotalHealth / battleUnit.HealthPerUnit), battleUnit);
             }
             
             Destroy(battleUnit.gameObject);
@@ -44,8 +44,7 @@ public class BattleHandler : MonoBehaviour
         int damageToTargetBase = battleUnit.TotalDamage;
         
         //var damageToBattleUnit
-        int damageToBattleUnit = targetBase.UnitsOnBase * targetBase.DamagePerUnit;
-        print("targetBase.UnitsOnBase = " + targetBase.UnitsOnBase + " targetBase.DamagePerUnit = " + targetBase.DamagePerUnit);
+        int damageToBattleUnit = targetBase.TotalDamage;
         
         //deal damage to both
         battleUnit.TakeDamage(damageToBattleUnit);
@@ -59,7 +58,7 @@ public class BattleHandler : MonoBehaviour
             targetBase.ChangeOwner(battleUnit.Owner);
             //print("Owner Change");
             print("Before recieving reinforcment");
-            targetBase.RecieveBattleUnit(Mathf.FloorToInt(battleUnit.TotalHealth / battleUnit.HealthPerUnit));
+            targetBase.RecieveBattleUnit(battleUnit.NumberOfUnits, battleUnit);
             if (battleUnit != null) Destroy(battleUnit.gameObject);
             battlesDictionary.Remove(targetBase);
         }

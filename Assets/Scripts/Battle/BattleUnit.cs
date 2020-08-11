@@ -18,6 +18,10 @@ public abstract class BattleUnit : MonoBehaviour
     private Vector3 distance = new Vector3(0,0,0);
     private bool isMoving = true;
     private bool _inBattle = false;
+    private BattleUnit primaryBattleUnit;
+
+    //Changes for different units
+    private Dictionary<BattleUnit, int> battleUnitsDictionary = new Dictionary<BattleUnit, int>();
 
     
     private Owner _owner;
@@ -29,7 +33,12 @@ public abstract class BattleUnit : MonoBehaviour
     { 
         get 
         { 
-            _totalHealth = _numberOfUnits * _healthPerUnit;
+            int totalHealth = 0;
+            foreach (var battleUnit in battleUnitsDictionary)
+            {
+                totalHealth += battleUnit.Key.HealthPerUnit * battleUnit.Value;
+            } 
+            _totalHealth = totalHealth;
             return _totalHealth;
         }
     }
@@ -40,8 +49,28 @@ public abstract class BattleUnit : MonoBehaviour
     { 
         get 
         { 
-            _totalDamage = _numberOfUnits * _damagePerUnit;
+            int totalDamage = 0;
+            foreach (var battleUnit in battleUnitsDictionary)
+            {
+                totalDamage += battleUnit.Key.DamagePerUnit * battleUnit.Value;
+                print("Total damage of battleUnit = " + totalDamage);
+            }
+            _totalDamage = totalDamage;
             return _totalDamage;
+        }
+    }
+
+    public int NumberOfUnits
+    { 
+        get 
+        { 
+            int numberOfUnits = 0;
+            foreach (var battleUnit in battleUnitsDictionary)
+            {
+                numberOfUnits += battleUnit.Value;
+            }
+            _numberOfUnits = numberOfUnits;
+            return _numberOfUnits;
         }
     }
     
@@ -58,7 +87,7 @@ public abstract class BattleUnit : MonoBehaviour
        // print("Start of battleUnit");
         print("_numberOfUnits = " + _numberOfUnits);
         _battleHandler = GameObject.Find("BattleHandler").GetComponent<BattleHandler>();
-        _totalHealth = _numberOfUnits * _healthPerUnit;
+        _totalHealth = TotalHealth;
     }
     
     private void Update() 
@@ -73,22 +102,38 @@ public abstract class BattleUnit : MonoBehaviour
     
     public void TakeDamage(int damageAmount)
     {
-        print("Total health before decreasing = " + _totalHealth);
-        _totalHealth = _numberOfUnits * _healthPerUnit;
-        _totalHealth -= damageAmount;
+        _totalHealth = TotalHealth - damageAmount;
+        if (_totalHealth < 0)  _totalHealth = 0;
+
         DecreaseNumberOfUnits();
     }
 
-    public void IncreaseNumberOfUnits(int numberOfUnits)
+    public void IncreaseNumberOfUnits(int numberOfUnits, BattleUnit battleUnit)
     {
-        _numberOfUnits += numberOfUnits; 
+        if (battleUnitsDictionary.ContainsKey(battleUnit) == true)
+            battleUnitsDictionary[battleUnit] += numberOfUnits;
+        else
+        {
+            battleUnitsDictionary.Add(battleUnit, numberOfUnits);
+            primaryBattleUnit = battleUnit;
+        } 
+            
+        _numberOfUnits = NumberOfUnits; // TODO wrong logic
     }
 
     private void DecreaseNumberOfUnits()
     {
-        print("Calculated number of units after damage to battlke unit " + Mathf.FloorToInt(_totalHealth / _healthPerUnit));
-        _numberOfUnits = Mathf.FloorToInt(_totalHealth / _healthPerUnit);
-        if (_numberOfUnits < 0)  _numberOfUnits = 0;
+        var battleUnitsDictionaryCopy = new Dictionary<BattleUnit, int>();
+        
+        foreach (var battleUnit in battleUnitsDictionary)
+        {            
+            var totalHealthOfBattleUnit = battleUnit.Value / NumberOfUnits * _totalHealth;
+            battleUnitsDictionaryCopy[battleUnit.Key] = Mathf.FloorToInt(totalHealthOfBattleUnit / battleUnit.Key.HealthPerUnit);
+        }
+        
+        battleUnitsDictionary = battleUnitsDictionaryCopy;
+
+        _numberOfUnits = NumberOfUnits;
     }
 
     private void HandleMovement()
@@ -103,17 +148,18 @@ public abstract class BattleUnit : MonoBehaviour
         }
     }
 
-    public void RecieveReinforcments(int numberOfUnits)
+    public void RecieveReinforcments(int numberOfUnits, BattleUnit battleUnit)
     {
-        print("recieve reinforcments of " + numberOfUnits);
-        _numberOfUnits += numberOfUnits;
+        battleUnitsDictionary[battleUnit] += numberOfUnits;
+        _numberOfUnits = NumberOfUnits; // TODO WRONG LOGIC
     }
     
     private void OnReachingTargetBase()
     {         
         if (_targetBase.Owner == _owner)
         {
-            _targetBase.RecieveBattleUnit(_numberOfUnits);
+            
+            _targetBase.RecieveBattleUnit(battleUnitsDictionary[primaryBattleUnit], primaryBattleUnit);
             Destroy(gameObject);
         }
 

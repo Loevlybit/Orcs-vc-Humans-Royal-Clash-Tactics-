@@ -4,17 +4,18 @@ using UnityEngine;
 
 public class UnitSelectionButton : MonoBehaviour
 {
-    [SerializeField] private BattleUnit[] _battleUnits;
-    [SerializeField] private GameObject[] _battleUnitsPrefabs;
-    [SerializeField] private int _unitIndexOfThisButton;
+    [SerializeField] private BattleUnit battleUnit;
+    [SerializeField] private GameObject battleUnitPrefab;
+    
 
     public void OnClick()
     {
-        BaseSelection.BaseSelected.GetComponent<Base>().UpdateSelectedUnit(_battleUnits[_unitIndexOfThisButton],
-         _battleUnitsPrefabs[_unitIndexOfThisButton]);
+        var selectedBase = BaseSelection.BaseSelected.GetComponent<Base>();
+        selectedBase.UpdateSelectedUnit(battleUnit, battleUnitPrefab);
+        selectedBase.ChangeOfSelectedUnit();
     }
     
-    
+
 
 
 }

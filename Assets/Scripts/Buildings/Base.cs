@@ -20,9 +20,17 @@ public class Base : MonoBehaviour
     private int _damagePerUnit;
     private int _healthPerUnit;
     private int _choosenUnitsForAttack = 0;
+    private int _totalDamage;
+    private int _totalHealth;
 
     [SerializeField] private GameObject _selectedUnit;
     [SerializeField] private BattleUnit _selectedUnitScript; // to do set it dynamically
+
+    //Changes for different units
+    private Dictionary<BattleUnit, int> battleUnitsDictionary = new Dictionary<BattleUnit, int>();
+    [SerializeField] private BattleUnit[] battleUnits;
+
+
 
     private RoundSystem roundSystem;
     [SerializeField] private GameObject _basePanel;
@@ -42,7 +50,49 @@ public class Base : MonoBehaviour
     public AutoDirection currentAutoDirection = AutoDirection.none; 
 
     public Owner Owner { get { return _owner; } }
-    public int UnitsOnBase { get { return _unitsOnBase; } }
+
+    public int UnitsOnBase 
+    { 
+        get 
+        { 
+            int unitsOnBase = 0;
+            foreach (var battleUnit in battleUnitsDictionary)
+            {
+                unitsOnBase += battleUnit.Value;
+            } 
+            _unitsOnBase = unitsOnBase;
+            return _unitsOnBase;
+        } 
+    }
+
+    public int TotalHealth 
+    { 
+        get 
+        { 
+            int totalHealth = 0;
+            foreach (var battleUnit in battleUnitsDictionary)
+            {
+                totalHealth += battleUnit.Key.HealthPerUnit * battleUnit.Value;
+            } 
+            _totalHealth = totalHealth;
+            return _totalHealth;
+        }
+    }
+
+    public int TotalDamage
+    {
+        get
+        {
+            int totalDamage = 0;
+            foreach (var battleUnit in battleUnitsDictionary)
+            {
+                totalDamage += battleUnit.Key.DamagePerUnit * battleUnit.Value;
+            }
+            _totalDamage = totalDamage;
+            return _totalDamage;
+        }
+    }
+    
     public int DamagePerUnit{ get { return _damagePerUnit; } }
     public int HealthPerUnit{ get { return _healthPerUnit; } }
     public int ChoosenUnitsForAttack { set { _choosenUnitsForAttack = value; } }
@@ -60,6 +110,15 @@ public class Base : MonoBehaviour
         _healthPerUnit = _selectedUnitScript.HealthPerUnit;
 
         StartCoroutine(SetConnectedBases(this));
+
+        foreach (var battleUnit in battleUnits)
+        {
+            if (battleUnitsDictionary.ContainsKey(battleUnit)) continue;
+            battleUnitsDictionary.Add(battleUnit, 0);
+            print(battleUnit.gameObject.name + " count is " + battleUnitsDictionary[battleUnit]);
+        }
+
+        
     }
 
     private IEnumerator SetConnectedBases(Base _base)
@@ -84,8 +143,31 @@ public class Base : MonoBehaviour
 
     public void TakeDamage(int amountOfDamage)
     {
-        var changeInNumberUnits = -(amountOfDamage / _selectedUnitScript.HealthPerUnit);
-        ChangeNumberOfUnits(changeInNumberUnits);
+
+        _totalHealth = TotalHealth - amountOfDamage;
+        if (_totalHealth < 0)  _totalHealth = 0;
+
+        DecreaseNumberOfUnits();
+        
+        if (OnNumberOfUnitsChange != null)
+        {
+            OnNumberOfUnitsChange(this, EventArgs.Empty);
+        } 
+    }
+
+    private void DecreaseNumberOfUnits()
+    {
+        var battleUnitsDictionaryCopy = new Dictionary<BattleUnit, int>();
+        
+        foreach (var battleUnit in battleUnitsDictionary)
+        {
+            var totalHealthOfBattleUnit = battleUnit.Value / UnitsOnBase * _totalHealth;
+            battleUnitsDictionaryCopy[battleUnit.Key] = Mathf.FloorToInt(totalHealthOfBattleUnit / battleUnit.Key.HealthPerUnit);
+        }
+
+        battleUnitsDictionary = battleUnitsDictionaryCopy;
+
+        _unitsOnBase = UnitsOnBase;
     }
 
     private void ProduceUnits(BattleUnit unit)
@@ -93,17 +175,31 @@ public class Base : MonoBehaviour
         if (_owner == Owner.Neutral) return;
 
         var numberOfUnits = unit.UnitsProducedPerRound;
-        ChangeNumberOfUnits(numberOfUnits);
+        ChangeNumberOfUnits(numberOfUnits, _selectedUnitScript);
     }
 
-    public void RecieveBattleUnit(int numberOfUnits)
+    public void RecieveBattleUnit(int numberOfUnits, BattleUnit battleUnit)
     {
-        ChangeNumberOfUnits(numberOfUnits);
+        ChangeNumberOfUnits(numberOfUnits, battleUnit);
     }
 
-    private void ChangeNumberOfUnits(int numberOfUnits)
+    public void ChangeOfSelectedUnit()
     {
-        _unitsOnBase += numberOfUnits;
+        ChangeNumberOfUnits(0, _selectedUnitScript);
+    }
+
+    private void ChangeNumberOfUnits(int numberOfUnits, BattleUnit battleUnit)
+    {
+        if (battleUnitsDictionary.ContainsKey(battleUnit) == true)
+        {
+            print("key not found" + " count of battle unit " + battleUnitsDictionary[battleUnit]);
+            battleUnitsDictionary[battleUnit] += numberOfUnits;
+        }
+
+        else 
+            battleUnitsDictionary.Add(battleUnit, numberOfUnits);
+        
+        _unitsOnBase = UnitsOnBase; // TODO wrong logic
         if (_unitsOnBase < 0 ) _unitsOnBase = 0;
 
         if (OnNumberOfUnitsChange != null)
@@ -114,6 +210,7 @@ public class Base : MonoBehaviour
 
     private void CreateBattleUnit(GameObject unit, Base actingBase, Base targetbase)
     {
+        print("Created Unit name = " + unit.name);
         GameObject battleUnit = Instantiate(unit, actingBase.gameObject.transform.position
          + unit.GetComponent<BattleUnit>().Offset, Quaternion.identity);
 
@@ -129,10 +226,10 @@ public class Base : MonoBehaviour
 
         print("Acting Base Owner " + actingBase.Owner + " target base owner = " + targetbase.Owner + " bUnit owner = " + bUnit.Owner);
         print("Setted number of units in created unit = " + actingBase._choosenUnitsForAttack);
-        bUnit.IncreaseNumberOfUnits(actingBase._choosenUnitsForAttack);
+        bUnit.IncreaseNumberOfUnits(actingBase._choosenUnitsForAttack, actingBase._selectedUnitScript);
 
         print("number of units in BattleUnit after increasing = " + bUnit.TotalHealth / bUnit.HealthPerUnit);
-        actingBase.ChangeNumberOfUnits(-actingBase._choosenUnitsForAttack);
+        actingBase.ChangeNumberOfUnits(-actingBase._choosenUnitsForAttack, actingBase._selectedUnitScript);
         actingBase._choosenUnitsForAttack = 0;
     }
 
@@ -224,13 +321,13 @@ public class Base : MonoBehaviour
     public void Move(Base actingBase, Base targetBase)
     {
         print("AI Moves");
-        CreateBattleUnit(_selectedUnit, actingBase, targetBase);
+        CreateBattleUnit(actingBase._selectedUnit, actingBase, targetBase);
     }
     
     public void Attack(Base actingBase, Base targetBase)
     {
         print("AI Attacks");
-        CreateBattleUnit(_selectedUnit, actingBase, targetBase);
+        CreateBattleUnit(actingBase._selectedUnit, actingBase, targetBase);
     }
 
     public void InitialSetup(int baseSetupNumber)
@@ -238,19 +335,23 @@ public class Base : MonoBehaviour
         if (baseSetupNumber == 0)
         {
             _owner = Owner.Player;
+            battleUnitsDictionary[_selectedUnitScript] = 10;
             _unitsOnBase = 10;
+            
             _chooseSlider.SetActive(true);
         }
 
         else if (baseSetupNumber == 35)
         {
             _owner = Owner.AI;
+            battleUnitsDictionary[_selectedUnitScript] = 10;
             _unitsOnBase = 10;
         }
         
         else
         {
             _owner = Owner.Neutral;
+            battleUnitsDictionary[_selectedUnitScript] = 5;
             _unitsOnBase = 5;
                        
         }
@@ -259,6 +360,8 @@ public class Base : MonoBehaviour
         
     }
 
+
+    
     private List<Base> FindConnectedBases(Base _base)
     {
         var connectedBases = new List<Base>();
@@ -280,5 +383,11 @@ public class Base : MonoBehaviour
     {
         _selectedUnit = selectedUnitPrefab;
         _selectedUnitScript = selectedUnit;
+        print("Selected unit name = " + _selectedUnit.name);
+    }
+
+    public int GetSelectedUnitCount()
+    {
+        return battleUnitsDictionary[_selectedUnitScript];
     }
 }

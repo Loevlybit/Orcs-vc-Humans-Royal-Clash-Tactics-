@@ -33,8 +33,8 @@ public class BaseUI : MonoBehaviour
 
     private void UpdateNumberOfUnitsUI()
     {
-        if (_myChooseSlider != null) _myChooseSlider.maxValue = myBase.UnitsOnBase;
-        _tmPro.text = myBase.UnitsOnBase.ToString();
+        if (_myChooseSlider != null) _myChooseSlider.maxValue = myBase.GetSelectedUnitCount();
+        _tmPro.text = myBase.GetSelectedUnitCount().ToString();
     }
 
 
